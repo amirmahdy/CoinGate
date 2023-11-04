@@ -1,0 +1,26 @@
+version: '3.5'
+services:
+  psql:
+    image: postgres:latest
+    container_name: psql
+    ports: [ '127.0.0.1:5432:5432' ]
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ../app.env
+
+  app:
+    build:
+      context: ../
+      dockerfile: ./docker/app/Dockerfile
+    container_name: app
+    ports:
+      - 8080:8080    
+    entrypoint: 
+      [
+        "/app/wait-for.sh",
+        "psql:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: ["/app/main"]
