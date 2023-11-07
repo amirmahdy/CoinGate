@@ -18,6 +18,8 @@ func TestVerifyHashPassword(t *testing.T) {
 	hash, err := CreateHashPassword(password)
 	require.NoError(t, err)
 
-	require.Equal(t, true, VerifyHashPassword(password, hash))
-	require.Equal(t, false, VerifyHashPassword("wrongpassword", hash))
+	err = VerifyHashPassword(password, hash)
+	require.NoError(t, err)
+	err = VerifyHashPassword("wrongpassword", hash)
+	require.NoError(t, err)
 }

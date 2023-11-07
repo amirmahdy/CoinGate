@@ -22,6 +22,6 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	testStore = NewStore(testDB)
+	testStore = NewSQLStore(testDB)
 	os.Exit(m.Run())
 }
