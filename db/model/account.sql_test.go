@@ -53,6 +53,6 @@ func TestCreateAccount(t *testing.T) {
 	require.NotZero(t, account.ID)
 	require.Equal(t, user.Username, account.Username)
 	require.Equal(t, balance, account.Balance)
-	require.Equal(t, coin, account.Coin)
+	require.Equal(t, coin.Name, account.Coin)
 	require.NotZero(t, account.CreatedAt)
 }
