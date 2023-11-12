@@ -24,5 +24,5 @@ func TestCreateUser(t *testing.T) {
 	require.Equal(t, arg.Username, user.Username)
 	require.Equal(t, arg.FullName, user.FullName)
 	require.Equal(t, arg.Email, user.Email)
-	require.Equal(t, true, utils.VerifyHashPassword("secret", user.HashedPassword))
+	require.NoError(t, utils.VerifyHashPassword("secret", user.HashedPassword))
 }
