@@ -21,5 +21,5 @@ func TestVerifyHashPassword(t *testing.T) {
 	err = VerifyHashPassword(password, hash)
 	require.NoError(t, err)
 	err = VerifyHashPassword("wrongpassword", hash)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
