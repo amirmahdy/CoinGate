@@ -3,6 +3,7 @@ package api
 import (
 	"db"
 	"net/http"
+	"token"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,12 +20,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUser(ctx, req.Username)
-	if err != nil {
-		ctx.JSON(http.StatusForbidden, errorResponse(err))
-		return
-	}
-
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	coin, err := server.store.GetCoin(ctx, req.Coin)
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, errorResponse(err))
@@ -32,7 +28,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	}
 
 	arg := db.CreateAccountParams{
-		Username: user.Username,
+		Username: authPayload.Username,
 		Coin:     coin.Name,
 	}
 

@@ -51,11 +51,6 @@ func TestCreateAccount(t *testing.T) {
 					Coin:     accountTest.Coin,
 				}
 				store.EXPECT().
-					GetUser(gomock.Any(), gomock.Eq(arg.Username)).
-					Times(1).
-					Return(userTest, nil)
-
-				store.EXPECT().
 					GetCoin(gomock.Any(), gomock.Eq(accountTest.Coin)).
 					Times(1).
 					Return(coin, nil)
@@ -80,15 +75,6 @@ func TestCreateAccount(t *testing.T) {
 				addAuthorizatoin(t, request, tokenMaker, authorizationTypeBearer, userTest.Username, time.Minute)
 			},
 			buildStubs: func(store *dbmock.MockStore) {
-				arg := db.CreateAccountParams{
-					Username: accountTest.Username,
-					Coin:     accountTest.Coin,
-				}
-				store.EXPECT().
-					GetUser(gomock.Any(), gomock.Eq(arg.Username)).
-					Times(1).
-					Return(userTest, nil)
-
 				store.EXPECT().
 					GetCoin(gomock.Any(), gomock.Eq(accountTest.Coin)).
 					Times(1).
@@ -113,15 +99,6 @@ func TestCreateAccount(t *testing.T) {
 				addAuthorizatoin(t, request, tokenMaker, authorizationTypeBearer, userTest.Username, time.Minute)
 			},
 			buildStubs: func(store *dbmock.MockStore) {
-				arg := db.CreateAccountParams{
-					Username: accountTest.Username,
-					Coin:     accountTest.Coin,
-				}
-				store.EXPECT().
-					GetUser(gomock.Any(), gomock.Eq(arg.Username)).
-					Times(0).
-					Return(userTest, nil)
-
 				store.EXPECT().
 					GetCoin(gomock.Any(), gomock.Eq(accountTest.Coin)).
 					Times(0).
