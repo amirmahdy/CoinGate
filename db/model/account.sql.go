@@ -39,7 +39,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 
 const getAccount = `-- name: GetAccount :one
 SELECT id, username, balance, coin, created_at FROM accounts
-WHERE username LIKE $1 LIMIT 10
+WHERE username = $1
 `
 
 func (q *Queries) GetAccount(ctx context.Context, username string) (Account, error) {

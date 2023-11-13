@@ -25,31 +25,14 @@ func (q *Queries) CreateCoin(ctx context.Context, name string) (Coin, error) {
 	return i, err
 }
 
-const getCoin = `-- name: GetCoin :many
+const getCoin = `-- name: GetCoin :one
 SELECT name, created_at FROM coin
-WHERE name LIKE $1 
-LIMIT 10
+WHERE name = $1
 `
 
-func (q *Queries) GetCoin(ctx context.Context, name string) ([]Coin, error) {
-	rows, err := q.query(ctx, q.getCoinStmt, getCoin, name)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Coin{}
-	for rows.Next() {
-		var i Coin
-		if err := rows.Scan(&i.Name, &i.CreatedAt); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetCoin(ctx context.Context, name string) (Coin, error) {
+	row := q.queryRow(ctx, q.getCoinStmt, getCoin, name)
+	var i Coin
+	err := row.Scan(&i.Name, &i.CreatedAt)
+	return i, err
 }

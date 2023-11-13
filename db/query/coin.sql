@@ -1,7 +1,6 @@
--- name: GetCoin :many
+-- name: GetCoin :one
 SELECT * FROM coin
-WHERE name LIKE $1 
-LIMIT 10;
+WHERE name = $1;
 
 -- name: CreateCoin :one
 INSERT INTO coin (

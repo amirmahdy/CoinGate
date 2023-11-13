@@ -14,7 +14,7 @@ type Querier interface {
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetAccount(ctx context.Context, username string) (Account, error)
-	GetCoin(ctx context.Context, name string) ([]Coin, error)
+	GetCoin(ctx context.Context, name string) (Coin, error)
 	GetTransfers(ctx context.Context, fromAccountID int64) ([]Transfer, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)

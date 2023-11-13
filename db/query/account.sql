@@ -1,6 +1,6 @@
 -- name: GetAccount :one
 SELECT * FROM accounts
-WHERE username LIKE $1 LIMIT 10;
+WHERE username = $1 ;
 
 -- name: CreateAccount :one
 INSERT INTO accounts (
