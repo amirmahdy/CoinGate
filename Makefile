@@ -16,7 +16,7 @@ mock:
 	mockgen --package dbmock --destination db/mock/store.go db Store
 
 build:
-	docker-compose -p coin -f docker/docker-compose.yml build
+	docker-compose -p coin -f docker/docker-compose.yml build app
 
 start:
 	docker-compose -p coin -f docker/docker-compose.yml up -d
