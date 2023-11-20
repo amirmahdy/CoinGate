@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coingate-deployment
+  labels:
+    app: coingate
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: coingate
+  template:
+    metadata:
+      labels:
+        app: coingate
+    spec:
+      containers:
+      - name: coingate
+        image: ${AWS_ACCOUNT_ID}.dkr.ecr.eu-central-1.amazonaws.com/coingate:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: coingate

@@ -19,6 +19,12 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: Install Kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: '1.28.4' 
+      id: install
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -41,4 +47,16 @@ jobs:
       run: |
         make build
         docker tag coin_app:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        docker push -a $REGISTRY/$REPOSITORY
+
+    - name: Update kube config
+      run: aws eks update-kubeconfig --name coingate --region eu-central-1
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f aws/aws-auth.yaml
+        kubectl apply -f aws/deployment.yaml
+        kubectl apply -f aws/service.yaml
+        kubectl apply -f aws/issuer.yaml
+        kubeclt apply -f aws/ingress-nginx.yaml
+        kubeclt apply -f aws/ingress.yaml
