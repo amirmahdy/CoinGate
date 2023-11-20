@@ -47,6 +47,7 @@ jobs:
       run: |
         make build
         docker tag coin_app:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        docker tag coin_app:latest $REGISTRY/$REPOSITORY:latest
         docker push -a $REGISTRY/$REPOSITORY
 
     - name: Update kube config
