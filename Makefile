@@ -24,4 +24,10 @@ start:
 down:
 	docker-compose -p coin -f docker/docker-compose.yml down
 
+test:
+	go test -v -cover api
+	go test -v -cover db
+	go test -v -cover token
+	go test -v -cover utils
+
 .PHONY: migrateup migratedown new_migration sqlc mock build start down
