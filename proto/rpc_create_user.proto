@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "./pb";
+
+message CreateUserRequest{
+    string username = 1;
+    string full_name = 2;
+    string password = 3;
+    string email = 4;
+}
+
+message CreateUserResponse{
+    string username = 1;
+	string full_name = 2;
+	string email    = 3;
+}

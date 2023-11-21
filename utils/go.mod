@@ -1,6 +1,6 @@
 module utils
 
-go 1.21
+go 1.21.4
 
 require (
 	github.com/spf13/viper v1.17.0

@@ -30,4 +30,10 @@ test:
 	go test -v -cover token
 	go test -v -cover utils
 
-.PHONY: migrateup migratedown new_migration sqlc mock build start down
+proto:
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+    --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+    proto/*.proto
+
+.PHONY: migrateup migratedown new_migration sqlc mock build start down test proto

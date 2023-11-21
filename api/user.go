@@ -88,6 +88,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	resp := loginUserResponse{
+		SessionID:    refreshPayload.ID,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken}
 	ctx.JSON(http.StatusOK, resp)
