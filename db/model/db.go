@@ -30,6 +30,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createCoinStmt, err = db.PrepareContext(ctx, createCoin); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateCoin: %w", err)
 	}
+	if q.createSessionStmt, err = db.PrepareContext(ctx, createSession); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSession: %w", err)
+	}
 	if q.createTransferStmt, err = db.PrepareContext(ctx, createTransfer); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateTransfer: %w", err)
 	}
@@ -41,6 +44,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getCoinStmt, err = db.PrepareContext(ctx, getCoin); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCoin: %w", err)
+	}
+	if q.getSessionStmt, err = db.PrepareContext(ctx, getSession); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSession: %w", err)
 	}
 	if q.getTransfersStmt, err = db.PrepareContext(ctx, getTransfers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransfers: %w", err)
@@ -66,6 +72,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createCoinStmt: %w", cerr)
 		}
 	}
+	if q.createSessionStmt != nil {
+		if cerr := q.createSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSessionStmt: %w", cerr)
+		}
+	}
 	if q.createTransferStmt != nil {
 		if cerr := q.createTransferStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createTransferStmt: %w", cerr)
@@ -84,6 +95,11 @@ func (q *Queries) Close() error {
 	if q.getCoinStmt != nil {
 		if cerr := q.getCoinStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCoinStmt: %w", cerr)
+		}
+	}
+	if q.getSessionStmt != nil {
+		if cerr := q.getSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSessionStmt: %w", cerr)
 		}
 	}
 	if q.getTransfersStmt != nil {
@@ -142,10 +158,12 @@ type Queries struct {
 	tx                 *sql.Tx
 	createAccountStmt  *sql.Stmt
 	createCoinStmt     *sql.Stmt
+	createSessionStmt  *sql.Stmt
 	createTransferStmt *sql.Stmt
 	createUserStmt     *sql.Stmt
 	getAccountStmt     *sql.Stmt
 	getCoinStmt        *sql.Stmt
+	getSessionStmt     *sql.Stmt
 	getTransfersStmt   *sql.Stmt
 	getUserStmt        *sql.Stmt
 	updateAccountStmt  *sql.Stmt
@@ -157,10 +175,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                 tx,
 		createAccountStmt:  q.createAccountStmt,
 		createCoinStmt:     q.createCoinStmt,
+		createSessionStmt:  q.createSessionStmt,
 		createTransferStmt: q.createTransferStmt,
 		createUserStmt:     q.createUserStmt,
 		getAccountStmt:     q.getAccountStmt,
 		getCoinStmt:        q.getCoinStmt,
+		getSessionStmt:     q.getSessionStmt,
 		getTransfersStmt:   q.getTransfersStmt,
 		getUserStmt:        q.getUserStmt,
 		updateAccountStmt:  q.updateAccountStmt,

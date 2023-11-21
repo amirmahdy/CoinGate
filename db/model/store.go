@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 )
 
@@ -15,10 +14,6 @@ type SQLStore struct {
 	db *sql.DB
 	*Queries
 }
-
-var (
-	ErrUniqueViolation = errors.New("unique_violation")
-)
 
 func NewSQLStore(db *sql.DB) Store {
 	return &SQLStore{

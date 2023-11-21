@@ -14,6 +14,7 @@ import (
 	"utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -120,7 +121,7 @@ func TestUserCreate(t *testing.T) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(db.User{}, db.ErrUniqueViolation)
+					Return(db.User{}, &pq.Error{Code: "23505"})
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusForbidden, recorder.Code)
@@ -167,6 +168,76 @@ func TestUserCreate(t *testing.T) {
 			tc.checkResponse(t, recorder)
 		})
 	}
+}
+
+func TestUserLogin(t *testing.T) {
+	userTest, pass := createFakeUser()
+
+	testCases := []struct {
+		name          string
+		body          gin.H
+		buildStubs    func(store *dbmock.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{
+				"username": userTest.Username,
+				"password": pass,
+			},
+			buildStubs: func(store *dbmock.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), userTest.Username).
+					Times(1).
+					Return(userTest, nil)
+				store.EXPECT().
+					CreateSession(gomock.Any(), gomock.Any()).
+					Times(1)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+			},
+		},
+		{
+			name: "NotFound",
+			body: gin.H{
+				"username": "NotValid",
+				"password": pass,
+			},
+			buildStubs: func(store *dbmock.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.User{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+	}
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			crtl := gomock.NewController(t)
+			defer crtl.Finish()
+
+			store := dbmock.NewMockStore(crtl)
+			tc.buildStubs(store)
+
+			server := newTestServer(t, store)
+
+			data, err := json.Marshal(tc.body)
+			require.NoError(t, err)
+
+			recorder := httptest.NewRecorder()
+			request, err := http.NewRequest(http.MethodPost, "/user/login", bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+
 }
 
 func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {

@@ -7,6 +7,8 @@ import (
 	"utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type loginUserRequest struct {
@@ -15,7 +17,9 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	SessionID    uuid.UUID `json:"session_id"`
 }
 
 type createUserRequest struct {
@@ -53,15 +57,39 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := server.tokenMaker.CreateToken(
+	accessToken, _, err := server.tokenMaker.CreateToken(
 		user.Username,
 		server.config.AccessTokenDuration)
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	resp := loginUserResponse{AccessToken: accessToken}
+
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
+		user.Username,
+		server.config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	_, err = server.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Username:     user.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpireAt,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	resp := loginUserResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken}
 	ctx.JSON(http.StatusOK, resp)
 }
 
@@ -87,9 +115,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	_, err = server.store.CreateUser(ctx, arg)
 	if err != nil {
-		if err == db.ErrUniqueViolation {
-			ctx.JSON(http.StatusForbidden, errorResponse(err))
-			return
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
