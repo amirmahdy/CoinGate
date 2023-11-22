@@ -2,14 +2,17 @@ package main
 
 import (
 	"api"
+	"context"
 	"database/sql"
 	"db"
 	"gapi"
 	"log"
 	"net"
+	"net/http"
 	"pb"
 	"utils"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -27,6 +30,7 @@ func main() {
 	}
 	store := db.NewSQLStore(conn)
 	// runGinServer(config, store)
+	go runGatewayServer(config, store)
 	runGRPCServer(config, store)
 
 }
@@ -53,6 +57,34 @@ func runGRPCServer(config utils.Config, store db.Store) {
 		log.Fatal("cannot listen to grpc", err)
 	}
 	err = grpcServer.Serve(listener)
+	if err != nil {
+		log.Fatal("cannot start server", err)
+	}
+}
+
+func runGatewayServer(config utils.Config, store db.Store) {
+	server, err := gapi.NewServer(config, store)
+	if err != nil {
+		log.Fatal("cannot create server", err)
+	}
+	grpcMux := runtime.NewServeMux()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = pb.RegisterCoinGateHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatal("cannot register handler server")
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", config.HTTPServerAddrress)
+	if err != nil {
+		log.Fatal("cannot listen to grpc", err)
+	}
+
+	err = http.Serve(listener, mux)
 	if err != nil {
 		log.Fatal("cannot start server", err)
 	}
