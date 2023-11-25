@@ -7,11 +7,16 @@ import (
 	"utils"
 
 	"github.com/lib/pq"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	violations := validateCreateUserRequest(req)
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
 	hashedPassword, err := utils.CreateHashPassword(req.Password)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error in creating hash password")
@@ -40,4 +45,20 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 		Email:    req.Email,
 	}
 	return resp, nil
+}
+
+func validateCreateUserRequest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := utils.ValidateUsername(req.Username); err != nil {
+		violations = append(violations, fieldViolation("username", err))
+	}
+	if err := utils.ValidateFullname(req.FullName); err != nil {
+		violations = append(violations, fieldViolation("full_name", err))
+	}
+	if err := utils.ValidateUsername(req.Password); err != nil {
+		violations = append(violations, fieldViolation("password", err))
+	}
+	if err := utils.ValidateUsername(req.Password); err != nil {
+		violations = append(violations, fieldViolation("email", err))
+	}
+	return violations
 }
